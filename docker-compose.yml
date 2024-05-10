@@ -1,0 +1,24 @@
+version: '3'
+services:
+  app:
+    build: .
+    image: kupipodariday-image
+    ports:
+      - '3001:3001'
+    environment:
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=student
+      - DATABASE_PASSWORD=student
+      - DATABASE_NAME=kupipodariday
+    depends_on:
+      - db
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=student
+      - POSTGRES_PASSWORD=student
+      - POSTGRES_DB=kupipodariday
+    ports:
+      - '5432:5432'
