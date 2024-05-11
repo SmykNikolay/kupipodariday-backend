@@ -73,7 +73,14 @@ export class WishesService {
       throw new ConflictException('Этот подарок уже в вашем списке');
     }
 
-    const newWish = { ...wish, copied: wish.copied + 1 };
+    const userWishes = await this.wishRepo.find({
+      where: { owner: currentUser },
+    });
+    if (userWishes.some((w) => w.originId === id)) {
+      throw new ConflictException('Вы уже копировали себе этот подарок');
+    }
+
+    const newWish = { ...wish, copied: wish.copied + 1, originId: wish.id };
     await this.createWish(newWish, currentUser.username);
     return this.wishRepo.save(newWish);
   }
