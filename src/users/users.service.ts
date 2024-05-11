@@ -81,27 +81,34 @@ export class UsersService {
   async findByEmail(email: string): Promise<User> {
     return await this.userRepository.findOneBy({ email });
   }
+
+  async validateUniqueField(
+    field: string,
+    value: string,
+    currentUserId: number,
+  ) {
+    const existingUser =
+      field === 'username'
+        ? await this.findUserByName(value)
+        : await this.findByEmail(value);
+
+    if (existingUser && existingUser.id !== currentUserId) {
+      throw new BadRequestException(
+        `Пользователь с таким ${field} уже существует`,
+      );
+    }
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const user = await this.findOne(id);
 
       if (updateUserDto.username !== user.username) {
-        const username = await this.findUserByName(updateUserDto.username);
-
-        if (username) {
-          throw new BadRequestException(
-            'Пользователь с таким именем уже существует',
-          );
-        }
+        await this.validateUniqueField('username', updateUserDto.username, id);
       }
-      if (updateUserDto.email !== user.email) {
-        const userEmail = await this.findByEmail(updateUserDto.email);
 
-        if (userEmail) {
-          throw new BadRequestException(
-            'Пользователь с таким email уже существует',
-          );
-        }
+      if (updateUserDto.email !== user.email) {
+        await this.validateUniqueField('email', updateUserDto.email, id);
       }
       user.username = updateUserDto.username;
       user.email = updateUserDto.email;
